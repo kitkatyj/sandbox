@@ -81,12 +81,16 @@
     
     footer{
         margin-top: 1em;
-        display: flex;
         justify-content: space-between;
     }
     
     footer p{
         margin:0;
+        display: inline-block;
+    }
+    
+    footer p:last-child{
+        float:right;
     }
 </style>
 <script>
@@ -343,6 +347,7 @@
     </div>
     <footer>
         <button id="reset">Reset</button>
+        <p>Copyright &copy; kitkatyj</p>
         <p>Inspired by carykh's <a href="http://htwins.net/elem3/">Elemental 3</a></p>
     </footer>
 </body>
