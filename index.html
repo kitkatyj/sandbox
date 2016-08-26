@@ -1,0 +1,349 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Elemental Inspired</title>
+<script src="jquery-1.12.4.js"></script>
+<script src="jquery-ui.js"></script>
+<style>
+    html {
+        font-family: Helvetica,Arial,sans-serif;
+    }
+    h1, p {text-align: center;}
+    #inventory{
+        border:1px solid black;
+        display:flex;
+        justify-content: center;
+        flex-flow:wrap;
+        margin-bottom: 1em;
+        padding: 1em 0;
+    }
+    
+    .element, .slot, #result {
+        width:80px;
+        height:80px;
+        border-radius: 20px;
+        text-align: center;
+        padding:1em 2px;
+        transition: 0.2s all;
+        cursor:pointer;
+        box-sizing: border-box;
+    }
+    
+    .slot, #result{
+        background-color:black;
+        position:relative;
+    }
+    
+    .slot div, #result div{
+        position:absolute;
+        left:0;
+        top:0;
+    }
+    
+    .element:hover{
+        transform: scale(0.9);
+    }
+    
+    #kitchen{
+        background-color:gray;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding:1em;
+    }
+    
+    #kitchen .slot, #kitchen #result, #kitchen p{
+        margin: 0 16px;
+    }
+    
+    #kitchen p{
+        color:white;
+        font-size: 3em;
+    }
+    
+    #new-element-dialog{
+        margin: 1em auto;
+        width:250px;
+        background-color: lightgray;
+        padding: 1em;
+        text-align: center;
+        display:none;
+    }
+    
+    #new-element-dialog p {
+        margin: 0;
+    }
+    
+    #new-element-dialog #result {
+        margin: 1em auto;
+    }
+    
+    footer{
+        margin-top: 1em;
+        display: flex;
+        justify-content: space-between;
+    }
+    
+    footer p{
+        margin:0;
+    }
+</style>
+<script>
+    var elements = [];
+    var slot1 = '';
+    var slot2 = '';
+    
+    var nColor;
+    var nComposition;
+    
+    function Element(name,color,composition){
+        this.name = name;
+        this.color = color;
+        this.composition = composition;
+    }
+    
+    function init(){
+        //Sortable.create(document.getElementById('inventory'),{ghostClass:'ghost',animation:150});
+        console.log(localStorage.elements);
+        jQuery.get('elements.txt', function(data) {
+            if(localStorage.elements){
+                elements = JSON.parse(localStorage.elements);
+            }
+            else{
+                //initial split of the text file
+                var e1 = data.split('|');
+                //console.log(e1);
+
+                //reading then learning each element from text file
+                e1.forEach(function(e){
+                    var e2 = e.split(',');
+                    //console.log(e2);
+                    var el = new Element(e2[0],e2[1],e2[2]);
+                    //console.log(el);
+                    elements.push(el);
+                });
+            }
+            console.log(elements);
+            
+            //put learned elements into inventory
+            reloadInventory();
+            
+            $('#slot1').css('border','3px solid white');
+            
+            //console.log(getElement('e'));
+            
+            $('div#inventory').on('click','div.element',function(){
+                //console.log($(this));
+                if(!slot1){ //if slot1 is not filled
+                    $(this).clone().appendTo($('div#slot1'));
+                    slot1 = getElementByName($(this).text());
+                    $('div#slot1').css('border','none');
+                }
+                else if(!slot2){ //if slot2 is not filled
+                    $(this).clone().appendTo($('div#slot2'));
+                    slot2 = getElementByName($(this).text());
+                    $('div#slot2').css('border','none');
+                }
+                
+                //console.log($(this).text());
+                
+                console.log(slot1);
+                console.log(slot2);
+                
+                if(!slot1){
+                    $('div#slot1').css('border','3px solid white');
+                }
+                else if(!slot2){
+                    $('div#slot2').css('border','3px solid white');
+                }
+                else{
+                    console.log('ready to mix');
+                    
+                    var comp1 = slot1.composition.split('-');
+                    var comp2 = slot2.composition.split('-');
+                    //comp1 = comp1.composition.split('-');
+                    //comp2 = comp2.composition.split('-');
+                    var compResult = [];
+                    
+                    console.log(comp1);
+                    console.log(comp2);
+                    
+                    for(i = 0; i < 5; i++){
+                        compResult[i] = parseInt(comp1[i]) + parseInt(comp2[i]);
+                    }
+                    
+                    compResult = compResult.join('-');
+                    
+                    console.log(compResult);
+                    
+                    if(getElementByComposition(compResult)){ //if element exists
+                        console.log('element found');
+                        var elementName = getElementByComposition(compResult).name;
+                        console.log(elementName);
+                        var foundElement = $('div#inventory div.element[data-name="'+elementName+'"]');
+                        console.log(foundElement);
+                        foundElement.clone().appendTo($('div#result'));
+                    }
+                    else{ //else create this new element
+                        var color1 = slot1.color.split('-');
+                        var color2 = slot2.color.split('-');
+                        for(i = 0; i < color1.length; i++){
+                            color1[i] = parseInt(color1[i]);
+                            color2[i] = parseInt(color2[i]);
+                        }
+                        //console.log(color1);
+                        //console.log(color2);
+                        var newcolor = [Math.floor((color1[0]+color2[0])/2),Math.floor((color1[1]+color2[1])/2),Math.floor((color1[2]+color2[2])/2)];
+                        console.log(newcolor);
+                        $('div#new-element-dialog').css('display','block');
+                        var element = $('<div class="element">???</div>');
+                        element.css('background-color','rgb('+newcolor[0]+','+newcolor[1]+','+newcolor[2]+')');
+                        if(newcolor[0] + newcolor[1] + newcolor[2] < 382.5){
+                            element.css('color','white');
+                        }
+                        
+                        nColor = newcolor.join('-');
+                        nComposition = compResult;
+                        
+                        $('div#result').append(element);
+                        
+                        //$('div#new-element-dialog div.slot').html = element;
+                    }
+                    
+                }
+            });
+            
+            $('div.slot').on('click','div.element',function(){
+                var slotNumber = $(this).parent().attr('id');
+                //console.log(slotNumber);
+                if(slotNumber === 'slot1'){
+                    slot1 = '';
+                }
+                else if(slotNumber === 'slot2'){
+                    slot2 = '';
+                }
+                
+                if(!slot1){
+                    $('div#slot1').css('border','3px solid white');
+                    $('div#slot2').css('border','none');
+                }
+                else if(!slot2){
+                    $('div#slot1').css('border','none');
+                    $('div#slot2').css('border','3px solid white');
+                }
+                $('div#result').children().remove();
+                $('div#new-element-dialog').css('display','none');
+                $(this).remove();
+            });
+            
+            $('#confirm').click(function(){
+                if($('div#new-element-dialog input').val() === ''){
+                    console.log('Empty name');
+                }
+                else{
+                    console.log($('div#new-element-dialog input').val());
+                    var newElement = new Element($('div#new-element-dialog input').val(),nColor,nComposition);
+                    $('div#new-element-dialog').css('display','none');
+                    //$('div#result div.element').text = newElement.name;
+                    //$('div#result div.element').appendTo($('div#inventory'));
+                    elements.push(newElement);
+                    localStorage.elements = JSON.stringify(elements);
+                    
+                    /*reloadInventory();
+                    console.log(elements);
+                    
+                    $('div#kitchen div.slot').children().remove();
+                    $('div#result').children().remove();*/
+                }
+            });
+            
+            $('div#new-element-dialog input').on('input',function(){
+                $('div#new-element-dialog div#result div.element').text($('div#new-element-dialog input').val());
+            });
+            
+            $('#reset').click(function(){
+                localStorage.elements = '';
+                location.reload();
+            });
+        });
+        
+    }
+    
+    function reloadInventory(){
+        $('div#inventory').children().remove();
+        elements.forEach(function(e){
+            var element = $('<div class="element" data-name="'+e.name+'">'+e.name+'</div>');
+            var rgb = e.color.split('-');
+            if(e.color === '255-255-255'){
+                element.css('border','1px solid black');
+            }
+            element.css('background-color','rgb('+rgb[0]+','+rgb[1]+','+rgb[2]+')');
+            if(parseInt(rgb[0])+parseInt(rgb[1])+parseInt(rgb[2]) < 382.5){
+                element.css('color','white');
+            }
+            $('div#inventory').append(element);
+        });
+    }
+    
+    function getElementByName(name){
+        var selected;
+        elements.forEach(function(e){
+            if(e.name === name){
+                //console.log(e.id+' = '+id);
+                //console.log(e);
+                selected = e;
+            }
+        });
+        return selected;
+    }
+    
+    function getElementByComposition(composition){
+        var selected;
+        elements.forEach(function(e){
+            if(e.composition === composition){
+                selected = e;
+            }
+        });
+        return selected;
+    }
+    
+    function getCompositionByName(name){
+        var selected;
+        elements.forEach(function(e){
+            if(e.name === name){
+                selected = e.composition;
+            }
+        });
+        return selected;
+    }
+    
+    window.onload = init;
+</script>
+</head>
+
+<body>
+    <h1>Elements</h1>
+    <p>Click on an element from your inventory to add it to a slot. Click an element in a slot to remove it.</p>
+    <p></p>
+    <div id="inventory"></div>
+    <div id="kitchen">
+        <div class="slot" id="slot1"></div><p>+</p>
+        <div class="slot" id="slot2"></div><p>=</p>
+        <div id="result"></div>
+    </div>
+    <div id="new-element-dialog">
+        <p>Name the new element</p>
+        <div id="result"></div>
+        <form method="get">
+            <input type="text" required>
+            <input type="submit" id="confirm" value="Confirm">
+        </form>
+        
+    </div>
+    <footer>
+        <button id="reset">Reset</button>
+        <p>Inspired by carykh's <a href="http://htwins.net/elem3/">Elemental 3</a></p>
+    </footer>
+</body>
+</html>
