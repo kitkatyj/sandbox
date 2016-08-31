@@ -1,0 +1,161 @@
+html {
+    font-family: Helvetica,Arial,sans-serif;
+}
+
+li {
+    margin:0 auto;
+}
+
+body{
+    /*display:flex;
+    flex-flow:wrap;*/
+}
+
+#main {
+    flex:1;
+}
+
+aside {
+    /*flex-basis: 300px;
+    background-color:#eee;*/
+    display:flex;
+    flex-flow: wrap;
+    justify-content: center;
+}
+
+h1, p {text-align: center;}
+
+#inventory{
+    display:flex;
+    justify-content: center;
+    flex-flow:wrap;
+    margin-bottom: 1em;
+}
+
+#inventory .element{
+    margin:8px;
+}
+
+.element, .slot, #result, #elementI {
+    width:80px;
+    height:80px;
+    border-radius: 20px;
+    text-align: center;
+    padding:1em 2px;
+    transition: all 0.2s;
+    cursor:pointer;
+    box-sizing: border-box;
+    overflow: hidden;
+    word-wrap: break-word;
+    text-overflow:ellipsis;
+}
+
+.slot, #result, #elementI{
+    background-color:black;
+    position:relative;
+}
+
+.slot div, #result div, #elementI div{
+    position:absolute;
+    left:0;
+    top:0;
+}
+
+.element:hover{
+    transform:scale(0.9);
+}
+
+#kitchen{
+    bottom:0;
+    background-color:gray;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding:1em;
+}
+
+#kitchen .slot, #kitchen #result, #kitchen p{
+    margin: 0 16px;
+}
+
+#kitchen p{
+    color:white;
+    font-size: 3em;
+}
+
+.dialog{
+    position:relative;
+    margin:0;
+    background-color: lightgray;
+    text-align: center;
+    max-height: 0px;
+    width:0px;
+    overflow: hidden;
+    opacity:0;
+}
+
+.dialog p {
+    margin: 0;
+}
+
+#new-element-dialog #result, #element-info #elementI {
+    margin: 1em auto;
+}
+
+#element-info table{
+    margin:1em auto 0;
+}
+
+#element-info table td{
+    padding:0 1em;
+}
+
+#element-info table th img{
+    width:24px;
+}
+
+#element-info p#alert{
+    display:none;
+}
+
+#help-box{
+    text-align: left;
+}
+
+#help-box ul{
+    padding-left:1em;
+    margin:0;
+}
+
+#help-box li{
+    margin: 1em 0 0 0;
+}
+
+span.close{
+    position: absolute;
+    right:12px;
+    color:white;
+    margin-top:-10px;
+    font-size: 24px;
+    cursor: pointer;
+}
+
+span.close:hover{
+    color:gray;
+}
+
+footer{
+    flex-basis: 100%;
+    margin-top: 1em;
+    justify-content: space-between;
+}
+
+footer p{
+    display: inline-block;
+    margin:0;
+    display: inline-block;
+}
+
+footer p:last-child{
+    float:right;
+}

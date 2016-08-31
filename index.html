@@ -3,407 +3,59 @@
 <head>
 <meta charset="UTF-8">
 <title>Sandbox Elements</title>
-<script src="jquery-1.12.4.js"></script>
-<script src="jquery-ui.js"></script>
-<style>
-    html {
-        font-family: Helvetica,Arial,sans-serif;
-    }
-    h1, p {text-align: center;}
-    #inventory{
-        display:flex;
-        justify-content: center;
-        flex-flow:wrap;
-        margin-bottom: 1em;
-    }
-    
-    #inventory .element{
-        margin:8px;
-    }
-    
-    .element, .slot, #result {
-        width:80px;
-        height:80px;
-        border-radius: 20px;
-        text-align: center;
-        padding:1em 2px;
-        transition: 0.2s all;
-        cursor:pointer;
-        box-sizing: border-box;
-        overflow: hidden;
-        word-wrap: break-word;
-        text-overflow:ellipsis;
-    }
-    
-    .slot, #result{
-        background-color:black;
-        position:relative;
-    }
-    
-    .slot div, #result div{
-        position:absolute;
-        left:0;
-        top:0;
-    }
-    
-    .element:hover{
-        transform: scale(0.9);
-    }
-    
-    #kitchen{
-        background-color:gray;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding:1em;
-    }
-    
-    #kitchen .slot, #kitchen #result, #kitchen p{
-        margin: 0 16px;
-    }
-    
-    #kitchen p{
-        color:white;
-        font-size: 3em;
-    }
-    
-    #new-element-dialog{
-        margin: 1em auto;
-        width:250px;
-        background-color: lightgray;
-        text-align: center;
-        max-height: 0px;
-        overflow: hidden;
-    }
-    
-    #new-element-dialog p {
-        margin: 0;
-    }
-    
-    #new-element-dialog #result {
-        margin: 1em auto;
-    }
-    
-    footer{
-        margin-top: 1em;
-        justify-content: space-between;
-    }
-    
-    footer p{
-        display: inline-block;
-        margin:0;
-        display: inline-block;
-    }
-    
-    footer p:last-child{
-        float:right;
-    }
-    
-    footer p:last-child{
-        float:right;
-    }
-</style>
-<script>
-    var elements = [];
-    var slot1 = '';
-    var slot2 = '';
-    
-    var nColor;
-    var nComposition;
-    
-    function Element(name,color,composition){
-        this.name = name;
-        this.color = color;
-        this.composition = composition;
-    }
-    
-    function init(){
-        //Sortable.create(document.getElementById('inventory'),{ghostClass:'ghost',animation:150});
-        console.log(localStorage.elements);
-        
-        if(localStorage.elements){
-            elements = JSON.parse(localStorage.elements);
-            reloadInventory();
-        }
-        else{
-            readFromJson();
-        }
-        
-                   
-        $('#slot1').css('border','3px solid white');
-        
-        $('div#inventory').on('click','div.element',function(){
-            //console.log($(this));
-            if(!slot1){ //if slot1 is not filled
-                $(this).clone().appendTo($('div#slot1'));
-                slot1 = getElementByName($(this).text());
-                $('div#slot1').css('border','none');
-            }
-            else if(!slot2){ //if slot2 is not filled
-                $(this).clone().appendTo($('div#slot2'));
-                slot2 = getElementByName($(this).text());
-                $('div#slot2').css('border','none');
-            }
-
-            //console.log($(this).text());
-
-            //console.log(slot1);
-            //console.log(slot2);
-
-            if(!slot1){
-                $('div#slot1').css('border','3px solid white');
-            }
-            else if(!slot2){
-                $('div#slot2').css('border','3px solid white');
-            }
-            else{
-                //console.log('ready to mix');
-
-                var comp1 = slot1.composition.split('-');
-                var comp2 = slot2.composition.split('-');
-                //comp1 = comp1.composition.split('-');
-                //comp2 = comp2.composition.split('-');
-                var compResult = [];
-
-                //console.log(comp1);
-                //console.log(comp2);
-
-                for(i = 0; i < 5; i++){
-                    compResult[i] = parseInt(comp1[i]) + parseInt(comp2[i]);
-                }
-
-                compResult = compResult.join('-');
-
-                //console.log(compResult);
-
-                if(getElementByComposition(compResult)){ //if element exists
-                    //console.log('element found');
-                    var elementName = getElementByComposition(compResult).name;
-                    //console.log(elementName);
-                    var foundElement = $('div#inventory div.element[data-name="'+elementName+'"]');
-                    //console.log(foundElement);
-                    foundElement.clone().appendTo($('div#result'));
-                }
-                else{ //else create this new element
-                    var color1 = slot1.color.split('-');
-                    var color2 = slot2.color.split('-');
-                    for(i = 0; i < color1.length; i++){
-                        color1[i] = parseInt(color1[i]);
-                        color2[i] = parseInt(color2[i]);
-                    }
-                    //console.log(color1);
-                    //console.log(color2);
-                    var newcolor = [Math.floor((color1[0]+color2[0])/2),Math.floor((color1[1]+color2[1])/2),Math.floor((color1[2]+color2[2])/2)];
-                    //console.log(newcolor);
-                    newElementDialog(true);
-                    var element = $('<div class="element">???</div>');
-                    element.css('background-color','rgb('+newcolor[0]+','+newcolor[1]+','+newcolor[2]+')');
-                    if(newcolor[0] + newcolor[1] + newcolor[2] < 382.5){
-                        element.css('color','white');
-                    }
-
-                    nColor = newcolor.join('-');
-                    nComposition = compResult;
-
-                    $('div#result').append(element);
-
-                    //$('div#new-element-dialog div.slot').html = element;
-                }
-
-            }
-        });
-
-        $('div.slot').on('click','div.element',function(){
-            var slotNumber = $(this).parent().attr('id');
-            //console.log(slotNumber);
-            if(slotNumber === 'slot1'){
-                slot1 = '';
-            }
-            else if(slotNumber === 'slot2'){
-                slot2 = '';
-            }
-
-            if(!slot1){
-                $('div#slot1').css('border','3px solid white');
-                $('div#slot2').css('border','none');
-            }
-            else if(!slot2){
-                $('div#slot1').css('border','none');
-                $('div#slot2').css('border','3px solid white');
-            }
-            $('div#new-element-dialog input').val('');
-            $('div#result').children().remove();
-            newElementDialog(false);
-            $(this).remove();
-        });
-
-        $('#confirm').click(function(){
-            confirmElement();
-        });
-
-        $('div#new-element-dialog input').on('input',function(){
-            $('div#new-element-dialog div#result div.element').text($('div#new-element-dialog input').val());
-        });
-        
-        $('div#new-element-dialog input').keyup(function(e){
-            //console.log(e.keyCode);
-            if(e.keyCode === 13){
-                confirmElement();
-            }
-        });
-
-        $('#reset').click(function(){
-            localStorage.elements = '';
-            $('div#kitchen div.slot').children().remove();
-            $('div#result').children().remove();
-            slot1 = '';
-            slot2 = '';
-            $('div#new-element-dialog input').val('');
-            newElementDialog(false);
-            $('div#slot1').css('border','3px solid white');
-            $('div#slot2').css('border','none');
-            readFromJson();
-        });
-        
-        //console.log('hi');
-    }
-    
-    function newElementDialog(open){
-        if(open){
-            $('div#new-element-dialog').animate({
-                padding:'1em',
-                maxHeight:'185px'
-            },500,'easeOutQuart');
-        }
-        else{
-            $('div#new-element-dialog').animate({
-                padding:'0px',
-                maxHeight:'0px'
-            },500,'easeOutQuart');
-        }
-    }
-    
-    function confirmElement(){
-        if($('div#new-element-dialog input').val()){
-            console.log($('div#new-element-dialog input').val());
-            var newElement = new Element($('div#new-element-dialog input').val(),nColor,nComposition);
-            newElementDialog(false);
-            //$('div#result div.element').text = newElement.name;
-            //$('div#result div.element').appendTo($('div#inventory'));
-            elements.push(newElement);
-            localStorage.elements = JSON.stringify(elements);
-
-            reloadInventory();
-            console.log(elements);
-
-            $('div#kitchen div.slot').children().remove();
-            $('div#result').children().remove();
-            slot1 = '';
-            slot2 = '';
-            $('div#new-element-dialog input').val('');
-        }
-}
-    
-    function readFromJson(){
-        $.ajax({
-            dataType:"json",
-          url: "elements.json",
-          success: function(data){
-             elements = data;
-              console.log(elements);
-              reloadInventory();
-          }
-        });
-    }
-    
-    function reloadInventory(){
-        var starting = $('div#inventory div.element').length;
-        var ending = elements.length;
-        var delay = 0;
-        console.log(starting + ' to ' + ending);
-        if(starting > ending) $('div#inventory').children().remove();
-        elements.forEach(function(e,i){
-            if((i >= starting && i < ending) || starting > ending){
-                var element = $('<div class="element" data-name="'+e.name+'">'+e.name+'</div>');
-                var rgb = e.color.split('-');
-                if(e.color === '255-255-255'){
-                    element.css('border','1px solid black');
-                }
-                element.css('background-color','rgb('+rgb[0]+','+rgb[1]+','+rgb[2]+')');
-                if(parseInt(rgb[0])+parseInt(rgb[1])+parseInt(rgb[2]) < 382.5){
-                    element.css('color','white');
-                }
-                element.css('max-width','0px');
-                element.css('max-height','0px');
-                element.css('padding','0px');
-                element.css('opacity',0);
-                $('div#inventory').append(element);
-                element.delay(delay).animate({
-                    maxWidth:'80px',
-                    maxHeight:'80px',
-                    padding:'1em 2px',
-                    opacity:1
-                },100);
-                delay+=50;
-            }
-        });
-    }
-    
-    function getElementByName(name){
-        var selected;
-        elements.forEach(function(e){
-            if(e.name === name){
-                //console.log(e.id+' = '+id);
-                //console.log(e);
-                selected = e;
-            }
-        });
-        return selected;
-    }
-    
-    function getElementByComposition(composition){
-        var selected;
-        elements.forEach(function(e){
-            if(e.composition === composition){
-                selected = e;
-            }
-        });
-        return selected;
-    }
-    
-    function getCompositionByName(name){
-        var selected;
-        elements.forEach(function(e){
-            if(e.name === name){
-                selected = e.composition;
-            }
-        });
-        return selected;
-    }
-    
-    window.onload = init;
-</script>
+<script src="js/jquery-1.12.4.js"></script>
+<script src="js/jquery-ui.js"></script>
+<script src="js/main.js"></script>
+<link rel="stylesheet" type="text/css" href="css/main.css">
 </head>
 
 <body>
-    <h1>Sandbox Elements</h1>
-    <p>Click on an element from your inventory to add it to a slot. Click an element in a slot to remove it.</p>
-    <p></p>
-    <div id="inventory"></div>
-    <div id="kitchen">
-        <div class="slot" id="slot1"></div><p>+</p>
-        <div class="slot" id="slot2"></div><p>=</p>
-        <div id="result"></div>
-    </div>
-    <div id="new-element-dialog">
-        <p>Name the new element</p>
-        <div id="result"></div>
-            <input type="text" required>
-        <button id="confirm">Confirm</button>
+    <section id="main">
+        <h1>Sandbox Elements</h1>
+        <div id="inventory"></div>
+        <div id="kitchen">
+            <div class="slot" id="slot1"></div><p>+</p>
+            <div class="slot" id="slot2"></div><p>=</p>
+            <div id="result"></div>
+        </div>
+    </section>
+    <aside>
+        <div id="help-box" class="dialog">
+            <p><b>Help</b><span class="close">&times;</span></p>
+            <ul>
+                <li>Click on an element from your inventory to add it to a slot.</li>
+                <li>Right-click to show information about the element.</li>
+                <li>Click an element in a slot to remove it.</li>
+            </ul>
+        </div>
         
-    </div>
+        <div id="element-info" class="dialog">
+            <p>Element Information<span class="close">&times;</span></p>
+            <div id="elementI"></div>
+            <input type="text" required>
+            <p id="alert">You cannot rename base elements.</p>
+            <table>
+                <tr>
+                    <th><img src="images/element-icons-01.png"></th>
+                    <th><img src="images/element-icons-02.png"></th>
+                    <th><img src="images/element-icons-03.png"></th>
+                    <th><img src="images/element-icons-04.png"></th>
+                    <th><img src="images/element-icons-05.png"></th>
+                </tr>
+                <tr id="composition">
+                </tr>
+            </table>
+        </div>
+        
+        <div id="new-element-dialog" class="dialog">
+            <p>Name the new element</p>
+            <div id="result"></div>
+            <input type="text" required>
+            <button id="confirm">Confirm</button>
+        </div>
+    </aside>
     <footer>
-        <button id="reset">Reset</button>
+        <button id="help">Help</button><button id="reset">Reset</button>
         <p>Copyright &copy; kitkatyj</p>
         <p>Inspired by carykh's <a href="http://htwins.net/elem3/">Elemental 3</a></p>
     </footer>
