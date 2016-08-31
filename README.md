@@ -1,5 +1,16 @@
 # sandbox
 
+###31st August 2016
+<ul>
+<li>Restructured file layout</li>
+<li>New element information dialog box (right-click inventory element)</li>
+<li>You can now rename elements that you’ve created</li>
+<li>You can view the composition of an element from the amount of base
+elements</li>
+<li>New help dialog box (click help button at bottom-left)</li>
+<li>Minor animation changes</li>
+</ul>
+
 ###28th August 2016
 <ul>
 <li>Changed name to Sandbox Elements</li>
